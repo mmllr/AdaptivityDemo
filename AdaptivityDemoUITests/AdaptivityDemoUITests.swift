@@ -9,16 +9,15 @@
 import XCTest
 
 class AdaptivityDemoUITests: XCTestCase {
-        
+	var app: XCUIApplication!
     override func setUp() {
         super.setUp()
         
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-        
-        // In UI tests it is usually best to stop immediately when a failure occurs.
+		app = XCUIApplication()
         continueAfterFailure = false
         // UI tests must launch the application that they test. Doing this in setup will make sure it happens for each test method.
-        XCUIApplication().launch()
+		
+        app.launch()
 
         // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
@@ -27,32 +26,63 @@ class AdaptivityDemoUITests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
         super.tearDown()
     }
-    
-    func testAddingAndRemovingAnItem() {
-		let app = XCUIApplication()
-		let masterNavigationBar = app.navigationBars["Master"]
+
+	func ensureTheMasterTableIsVisible() {
 		if app.navigationBars["Detail"].buttons["Master"].exists {
 			app.navigationBars["Detail"].buttons["Master"].tap()
 		}
+	}
+	
+	func pressAddButtonInMasterBar() {
+		app.navigationBars["Master"].buttons["Add"].tap()
+	}
+
+	func startEditingMasterContent() {
+		app.navigationBars["Master"].buttons["Edit"].tap()
+	}
+	
+	func endEditingMasterContent() {
+		app.navigationBars["Master"].buttons["Done"].tap()
+	}
+
+	func deleteItemInTable(table: XCUIElementQuery, atIndex: UInt) {
+		let cell = table.cells.elementBoundByIndex(atIndex)
+		cell.buttons.elementBoundByIndex(0).tap()
+		cell.buttons.elementBoundByIndex(1).tap()
+	}
+
+	func navigateToItem(item: String, inTable: XCUIElementQuery) {
+		inTable.staticTexts[item].tap()
+	}
+
+	func ensureDetailViewIsVisible() {
+		let popOverDismissRegion = XCUIApplication().otherElements["PopoverDismissRegion"]
+		if popOverDismissRegion.exists {
+			popOverDismissRegion.tap()
+		}
+	}
+	
+    func testAddingAndRemovingAnItem() {
+		ensureTheMasterTableIsVisible()
+
 		let table = app.tables
 
 		XCTAssertEqual(table.cells.count, 0)
 
-		masterNavigationBar.buttons["Add"].tap()
+		pressAddButtonInMasterBar()
 
 		XCTAssertEqual(table.cells.count, 1)
 
-		table.staticTexts["Title"].tap()
-		if !masterNavigationBar.exists {
-			app.navigationBars.matchingIdentifier("Detail").buttons["Master"].tap()
-		}
-		masterNavigationBar.buttons["Edit"].tap()
+		navigateToItem("Item 1", inTable: table)
+		ensureDetailViewIsVisible()
 
-		let cell = table.cells.elementBoundByIndex(0)
-		cell.buttons.elementBoundByIndex(0).tap()
-		cell.buttons.elementBoundByIndex(1).tap()
-		
-		masterNavigationBar.buttons["Done"].tap()
+		XCTAssertTrue(app.staticTexts["DetailContentLabel"].exists)
+		XCTAssertEqual(app.staticTexts["DetailContentLabel"].label, "Item 1")
+
+		ensureTheMasterTableIsVisible()
+		startEditingMasterContent()
+		deleteItemInTable(table, atIndex: 0)
+		endEditingMasterContent()
 
 		XCTAssertEqual(table.cells.count, 0)
     }
