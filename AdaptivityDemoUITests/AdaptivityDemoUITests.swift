@@ -48,9 +48,9 @@ class AdaptivityDemoUITests: XCTestCase {
 		}
 		masterNavigationBar.buttons["Edit"].tap()
 
-		app.buttons["Delete Item 1"].tap()
-		app.tables.buttons["Delete"].tap()
-		
+		let cell = table.cells.elementBoundByIndex(0)
+		cell.buttons.elementBoundByIndex(0).tap()
+		cell.buttons.elementBoundByIndex(1).tap()
 		
 		masterNavigationBar.buttons["Done"].tap()
 
